@@ -172,9 +172,20 @@ public class PhysLayerClient {
                         System.out.println(s3 + " ");
                     }
                     
+                    FiveBto4B(A, 64 ,fiveB);
+                    
+                    System.out.println("\n5B TO 4B:");
+                    for(int o = 0; o < 64; o++){
+
+                        String s3 = String.format("%8s", Integer.toBinaryString(((int)fiveB[o]) & 0xFF)).replace(' ', '0');
+                        System.out.println(s3 + " ");
+                    }
+                    
+                    combineHalves(fiveB, 64, result);
+                    
 
                     System.out.print("Good? ");
-                    os.write(fiveB);
+                    os.write(result);
                     System.out.print(is.read());
 
                     //System.out.print(String.format("%x", a) + " ");
@@ -235,5 +246,55 @@ public class PhysLayerClient {
                             }
                         }
                     }
+        }
+        public static void FiveBto4B(byte[] in, int size, byte[] out){
+            for(int i = 0; i < size; i++){
+                switch (((int)(in[i]) & 0xFF)) {
+                    case 30:    out[i] = 0;
+                        break;
+                    case 9:     out[i] = 1;
+                        break;
+                    case 20:    out[i] = 2;
+                        break;
+                    case 21:    out[i] = 3;
+                        break;
+                    case 10:    out[i] = 4;
+                        break;
+                    case 11:    out[i] = 5;
+                        break;
+                    case 14:    out[i] = 6;
+                        break;
+                    case 15:    out[i] = 7;
+                        break;
+                    case 18:      out[i] = 8;
+                        break;
+                    case 19:      out[i] = 9;
+                        break;
+                    case 22:      out[i] = 10;
+                        break;
+                    case 23:      out[i] = 11;
+                        break;
+                    case 26:      out[i] = 12;
+                        break;
+                    case 27:      out[i] = 13;
+                        break;
+                    case 28:      out[i] = 14;
+                        break;
+                    case 29:      out[i] = 15;
+                        break;
+                }
+            }
+        }
+        public static void combineHalves(byte[] in, int size, byte[]out){
+            byte a;
+            byte b;
+            
+            for(int i = 0; i < size; i +=2){
+                a = (byte) in[i];
+                a = (byte) (a << 4);
+                b = (byte) in[i+1];
+                a = (byte) (a + b);
+                out[i/2] = a;
+            }
         }
 }
