@@ -16,6 +16,8 @@ public class PhysLayerClient {
                     byte[] b = new byte[320];
                     byte[] converted = new byte[320];
                     byte[] fiveB = new byte[64];
+                    byte[] A = new byte[64];
+                    byte[] C = new byte[64];
                     byte[] result = new byte[32];
                     float c = 0.0f;
                     int previousNum = 0;
@@ -24,15 +26,46 @@ public class PhysLayerClient {
                     OutputStream os = socket.getOutputStream();
                     
                     
-                    System.out.print("Baseline established: ");
-                    
+
                     for(int i = 0; i < 64; i++){
-                        c = c + is.read();
-                        //b = b + a;
+                        A[i] = (byte)is.read();
                     }
                     
+                    System.out.print("REVERSE NRZI");
+                    for(int k = 0; k < 64; k++){
+                        previousNum = 0;
+                        for(int l = 7; l >= 0; l--){
+                            if(previousNum == 0){
+                                if((((A[k] >> l) & 1) == 1)){
+                                    C[k] |= (1 << l);
+                                    previousNum = 1;
+                                }else if ((((A[k] >> l) & 1) == 0)){
+                                    C[k] &= ~(1 << l);
+                                    previousNum = 0;
+                                }
+                            }else{
+                                if((((A[k] >> l) & 1) == 1)){
+                                    C[k] &= ~(1 << l);
+                                    previousNum = 1;
+                                }else if ((((A[k] >> l) & 1) == 0)){
+                                    C[k] |= (1 << l);
+                                    previousNum = 0;
+                                }
+                            }
+                        }
+                    }
+                    for(int i = 0; i <64; i++){
+                        c = c + ((int)C[i] & 0xFF);
+                    }
+                    
+                    System.out.println();
+//                    for(int i = 0; i < 64; i++){
+//                        c = c + is.read();
+//                    }
+//                    
                     c = (float)(c/64);
-                    System.out.printf("%.2f" + "\n", c);
+                    
+                    System.out.printf("Baseline Established: %.2f" + "\n", c);
                     
                     System.out.print("INTAKE" + "\n");
                     for(int j = 0; j < 320; j++){
@@ -78,12 +111,12 @@ public class PhysLayerClient {
                                     converted[k] |= (1 << l);
                                     previousNum = 1;
                                 }else if ((((b[k] >> l) & 1) == 0)){
-                                    converted[k] |= (0 << l);
+                                    converted[k] &= ~(1 << l);
                                     previousNum = 0;
                                 }
                             }else{
                                 if((((b[k] >> l) & 1) == 1)){
-                                    converted[k] |= (0 << l);
+                                    converted[k] &= ~(1 << l);
                                     previousNum = 1;
                                 }else if ((((b[k] >> l) & 1) == 0)){
                                     converted[k] |= (1 << l);
@@ -96,7 +129,7 @@ public class PhysLayerClient {
                     System.out.println();
                     
                     
-                                       System.out.print("CONVERTED: " + "\n");
+                    System.out.print("CONVERTED: " + "\n");
                     for(int j = 0; j < 320; j++){
                         String s1 = String.format("%8s", Integer.toBinaryString(converted[j] & 0xFF)).replace(' ', '0');
                         System.out.println(s1 + " ");
@@ -104,14 +137,14 @@ public class PhysLayerClient {
                     }
                     System.out.println();
                     
-                    for(int m = 0; m < 320; m += 5){
+                    for(int m = 0; m < 320; m = m + 5){
                         a = 0;
                         
                         for(int n = 0; n <= 4; n++){
-                            if(converted[m + n] >= c){
-                                a |= (1 << (4 - n));
+                            if((((int)converted[(m + n)]) & 0xFF) >= c){
+                                a |= (byte)(1 << (4 - n));
                             }else{
-                                a &= ~(0 << (4 - n));
+                                a &= (byte)~(1 << (4 - n));
                             }
                         }
                         fiveB[m/5] = (byte)a;
@@ -120,7 +153,7 @@ public class PhysLayerClient {
                     System.out.println("\nFIVE CONVERTEDS:");
                     for(int o = 0; o < 64; o++){
 
-                                                String s1 = String.format("%8s", Integer.toBinaryString(fiveB[o] & 0xFF)).replace(' ', '0');
+                        String s1 = String.format("%8s", Integer.toBinaryString(fiveB[o] & 0xFF)).replace(' ', '0');
                         System.out.println(s1 + " ");
                     }
                     
@@ -131,5 +164,7 @@ public class PhysLayerClient {
                     //System.out.print(String.format("%x", a) + " ");
                     }
         }
-    
+        public static byte PhysLayerClient(byte wew){
+            return wew;
+        }
 }
